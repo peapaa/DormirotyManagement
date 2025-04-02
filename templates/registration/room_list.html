@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    
+
+    <!-- Thông báo -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Thông tin kỳ đăng ký -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Thông tin kỳ đăng ký</h5>
+            <div class="row">
+                <div class="col-md-4">
+                    <p><strong>Kỳ đăng ký:</strong> {{ current_period.name }}</p>
+                </div>
+                <div class="col-md-4">
+                    <p><strong>Thời gian bắt đầu:</strong> {{ current_period.registration_start|date:"d/m/Y H:i" }}</p>
+                </div>
+                <div class="col-md-4">
+                    <p><strong>Thời gian kết thúc:</strong> {{ current_period.registration_end|date:"d/m/Y H:i" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Form tìm kiếm và lọc -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label for="building" class="form-label">Tòa nhà</label>
+                    <select name="building" id="building" class="form-select">
+                        <option value="">Tất cả</option>
+                        {% for building in buildings %}
+                            <option value="{{ building.id }}" {% if selected_building == building.id|stringformat:"s" %}selected{% endif %}>
+                                {{ building.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="room_type" class="form-label">Loại phòng</label>
+                    <select name="room_type" id="room_type" class="form-select">
+                        <option value="">Tất cả</option>
+                        {% for room_type in room_types %}
+                            <option value="{{ room_type.id }}" {% if selected_room_type == room_type.id|stringformat:"s" %}selected{% endif %}>
+                                {{ room_type.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="gender" class="form-label">Giới tính</label>
+                    <select name="gender" id="gender" class="form-select">
+                        <option value="">Tất cả</option>
+                        <option value="male" {% if selected_gender == 'male' %}selected{% endif %}>Nam</option>
+                        <option value="female" {% if selected_gender == 'female' %}selected{% endif %}>Nữ</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="sort" class="form-label">Sắp xếp theo</label>
+                    <select name="sort" id="sort" class="form-select">
+                        <option value="room_number" {% if sort_by == 'room_number' %}selected{% endif %}>Số phòng</option>
+                        <option value="price" {% if sort_by == 'price' %}selected{% endif %}>Giá phòng</option>
+                        <option value="available_beds" {% if sort_by == 'available_beds' %}selected{% endif %}>Số giường trống</option>
+                        <option value="building" {% if sort_by == 'building' %}selected{% endif %}>Tòa nhà</option>
+                    </select>
+                </div>
+                <div class="col-md-9">
+                    <label for="q" class="form-label">Tìm kiếm</label>
+                    <input type="text" class="form-control" id="q" name="q" value="{{ search_query }}" placeholder="Nhập từ khóa tìm kiếm...">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search"></i> Tìm kiếm
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Danh sách phòng -->
+    <div class="row">
+        {% for room in rooms %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100">
+                    {% if room.image %}
+                        <img src="{{ room.image.url }}" class="card-img-top" alt="{{ room.room_number }}">
+                    {% else %}
+                        <img src="{% static 'images/room-placeholder.jpg' %}" class="card-img-top" alt="Room placeholder">
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            {{ room.building.name }} - Phòng {{ room.room_number }}
+                            {% if room.gender == 'male' %}
+                                <span class="badge bg-primary">Nam</span>
+                            {% else %}
+                                <span class="badge bg-danger">Nữ</span>
+                            {% endif %}
+                        </h5>
+                        <p class="card-text">
+                            <strong>Loại phòng:</strong> {{ room.room_type.name }}<br>
+                            <strong>Giá/tháng:</strong> {{ room.room_type.price_per_month|intcomma }} VNĐ<br>
+                            <strong>Số giường trống:</strong> {{ room.available_beds_count }}/{{ room.capacity }}<br>
+                            <strong>Trạng thái:</strong>
+                            {% if room.status == 'available' %}
+                                <span class="badge bg-success">Còn trống</span>
+                            {% elif room.status == 'partially_occupied' %}
+                                <span class="badge bg-warning">Còn một phần</span>
+                            {% endif %}
+                        </p>
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'registration:room_detail' room.id %}" class="btn btn-outline-primary">
+                                <i class="fas fa-info-circle"></i> Xem chi tiết
+                            </a>
+                            {% if can_register %}
+                                <a href="{% url 'registration:apply_with_room' room.id %}" class="btn btn-primary">
+                                    <i class="fas fa-check-circle"></i> Đăng ký ngay
+                                </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <div class="alert alert-info" role="alert">
+                    <i class="fas fa-info-circle"></i> Không tìm thấy phòng nào phù hợp với tiêu chí tìm kiếm.
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <!-- Phân trang -->
+    {% if rooms.paginator.num_pages > 1 %}
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if rooms.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}" aria-label="First">
+                            <span aria-hidden="true">&laquo;&laquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ rooms.previous_page_number }}{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                {% endif %}
+
+                {% for i in rooms.paginator.page_range %}
+                    {% if rooms.number == i %}
+                        <li class="page-item active"><span class="page-link">{{ i }}</span></li>
+                    {% elif i > rooms.number|add:'-3' and i < rooms.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ i }}{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}">{{ i }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if rooms.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ rooms.next_page_number }}{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ rooms.paginator.num_pages }}{% if request.GET.urlencode %}&{{ request.GET.urlencode }}{% endif %}" aria-label="Last">
+                            <span aria-hidden="true">&raquo;&raquo;</span>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Tự động submit form khi thay đổi select
+    document.querySelectorAll('select').forEach(select => {
+        select.addEventListener('change', () => {
+            select.closest('form').submit();
+        });
+    });
+</script>
+{% endblock %} 

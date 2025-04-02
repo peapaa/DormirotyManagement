@@ -1,0 +1,217 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 mb-0">{{ page_title }}</h1>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            
+
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">{% if room %}Chỉnh sửa{% else %}Thêm mới{% endif %} phòng</h5>
+                    <p class="card-text text-muted small">Nhập thông tin phòng.</p>
+                </div>
+
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger d-flex align-items-center mb-4" role="alert">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <div>
+                                {% for error in form.non_field_errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <div class="row mb-3">
+                            <label for="{{ form.building.id_for_label }}" class="col-sm-3 col-form-label">
+                                {{ form.building.label }}
+                            </label>
+                            <div class="col-sm-9">
+                                {{ form.building }}
+                                {% if form.building.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.building.errors %}
+                                    {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <label for="{{ form.room_type.id_for_label }}" class="col-sm-3 col-form-label">
+                                {{ form.room_type.label }}
+                            </label>
+                            <div class="col-sm-9">
+                                {{ form.room_type }}
+                                {% if form.room_type.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.room_type.errors %}
+                                    {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                                <div class="form-text">Chọn loại phòng, điều này sẽ xác định sức chứa và giá phòng.</div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <label for="{{ form.room_number.id_for_label }}" class="col-sm-3 col-form-label">
+                                {{ form.room_number.label }}
+                            </label>
+                            <div class="col-sm-9">
+                                {{ form.room_number }}
+                                {% if form.room_number.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.room_number.errors %}
+                                    {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <label for="{{ form.floor.id_for_label }}" class="col-sm-3 col-form-label">
+                                {{ form.floor.label }}
+                            </label>
+                            <div class="col-sm-9">
+                                {{ form.floor }}
+                                {% if form.floor.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.floor.errors %}
+                                    {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <label for="{{ form.status.id_for_label }}" class="col-sm-3 col-form-label">
+                                {{ form.status.label }}
+                            </label>
+                            <div class="col-sm-9">
+                                {{ form.status }}
+                                {% if form.status.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.status.errors %}
+                                    {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <label for="{{ form.current_occupancy.id_for_label }}" class="col-sm-3 col-form-label">
+                                {{ form.current_occupancy.label }}
+                            </label>
+                            <div class="col-sm-9">
+                                {{ form.current_occupancy }}
+                                {% if form.current_occupancy.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.current_occupancy.errors %}
+                                    {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <label for="{{ form.description.id_for_label }}" class="col-sm-3 col-form-label">
+                                {{ form.description.label }}
+                            </label>
+                            <div class="col-sm-9">
+                                {{ form.description }}
+                                {% if form.description.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.description.errors %}
+                                    {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <label for="{{ form.image.id_for_label }}" class="col-sm-3 col-form-label">
+                                {{ form.image.label }}
+                            </label>
+                            <div class="col-sm-9">
+                                {% if room.image %}
+                                <div class="mb-3">
+                                    <img src="{{ room.image.url }}" alt="{{ room.room_number }}" class="img-thumbnail" style="max-height: 200px;">
+                                </div>
+                                {% endif %}
+                                {{ form.image }}
+                                {% if form.image.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.image.errors %}
+                                    {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <label for="{{ form.is_active.id_for_label }}" class="col-sm-3 col-form-label">
+                                {{ form.is_active.label }}
+                            </label>
+                            <div class="col-sm-9">
+                                <div class="form-check mt-2">
+                                    {{ form.is_active }}
+                                    {% if form.is_active.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.is_active.errors %}
+                                        {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="form-text">Đánh dấu nếu phòng đang hoạt động</div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{% if room %}{% url 'dormitory:room_detail' room_id=room.id %}{% else %}{% url 'dormitory:room_list' %}{% endif %}" class="btn btn-light">
+                                Hủy
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>
+                                Lưu
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        $('#id_building').on('change', function() {
+            console.log('Tòa nhà đã thay đổi');
+        });
+    });
+</script>
+{% endblock %}

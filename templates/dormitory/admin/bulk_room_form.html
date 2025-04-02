@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 mb-0">{{ page_title }}</h1>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            
+
+            <div class="card shadow-sm">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Tạo nhiều phòng cùng lúc</h5>
+                    <p class="card-text text-muted small">Công cụ này sẽ giúp bạn tạo nhiều phòng với cùng tòa nhà, loại phòng trong một dải số phòng.</p>
+                </div>
+
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger d-flex align-items-center mb-4" role="alert">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <div>
+                                {% for error in form.non_field_errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <div class="row mb-3">
+                            <label for="{{ form.building.id_for_label }}" class="col-sm-3 col-form-label">
+                                {{ form.building.label }}
+                            </label>
+                            <div class="col-sm-9">
+                                {{ form.building }}
+                                {% if form.building.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.building.errors %}
+                                    {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <label for="{{ form.room_type.id_for_label }}" class="col-sm-3 col-form-label">
+                                {{ form.room_type.label }}
+                            </label>
+                            <div class="col-sm-9">
+                                {{ form.room_type }}
+                                {% if form.room_type.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.room_type.errors %}
+                                    {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <label for="{{ form.floor.id_for_label }}" class="col-sm-3 col-form-label">
+                                {{ form.floor.label }}
+                            </label>
+                            <div class="col-sm-9">
+                                {{ form.floor }}
+                                {% if form.floor.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.floor.errors %}
+                                    {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <label for="{{ form.start_number.id_for_label }}" class="col-sm-3 col-form-label">
+                                {{ form.start_number.label }}
+                            </label>
+                            <div class="col-sm-9">
+                                {{ form.start_number }}
+                                {% if form.start_number.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.start_number.errors %}
+                                    {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                                <div class="form-text">Số bắt đầu của dải phòng, ví dụ: 101</div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <label for="{{ form.end_number.id_for_label }}" class="col-sm-3 col-form-label">
+                                {{ form.end_number.label }}
+                            </label>
+                            <div class="col-sm-9">
+                                {{ form.end_number }}
+                                {% if form.end_number.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.end_number.errors %}
+                                    {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                                <div class="form-text">Số kết thúc của dải phòng, ví dụ: 120</div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <label for="{{ form.room_prefix.id_for_label }}" class="col-sm-3 col-form-label">
+                                {{ form.room_prefix.label }}
+                            </label>
+                            <div class="col-sm-9">
+                                {{ form.room_prefix }}
+                                {% if form.room_prefix.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.room_prefix.errors %}
+                                    {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                                <div class="form-text">Tiền tố thêm vào trước số phòng, ví dụ: "P" sẽ tạo P101, P102, ...</div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info" role="alert">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <div>
+                                <strong>Lưu ý:</strong> Hệ thống sẽ tạo các phòng từ <span id="preview-start">?</span> đến <span id="preview-end">?</span> với mỗi phòng có <span id="preview-beds">?</span> giường. Tổng số <strong><span id="preview-count">?</span> phòng</strong> sẽ được tạo.
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{% url 'dormitory:room_list' %}" class="btn btn-light">
+                                Hủy
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-plus-circle me-1"></i>
+                                Tạo phòng
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        function updatePreview() {
+            const start = $('#id_start_number').val();
+            const end = $('#id_end_number').val();
+            const prefix = $('#id_room_prefix').val();
+            const roomType = $('#id_room_type option:selected');
+
+            let capacity = 0;
+            if (roomType.length > 0) {
+                capacity = roomType.text().match(/\d+/) ? roomType.text().match(/\d+/)[0] : '?';
+            }
+
+            $('#preview-start').text(prefix + start);
+            $('#preview-end').text(prefix + end);
+            $('#preview-beds').text(capacity);
+
+            if (start && end) {
+                const count = parseInt(end) - parseInt(start) + 1;
+                $('#preview-count').text(count > 0 ? count : '?');
+            } else {
+                $('#preview-count').text('?');
+            }
+        }
+
+        $('#id_start_number, #id_end_number, #id_room_prefix, #id_room_type').on('change', updatePreview);
+
+        updatePreview();
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,318 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    
+
+    <!-- Thông báo -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Thông tin hợp đồng -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Chi tiết hợp đồng</h5>
+                        <div>
+                            {% if contract.status == 'pending' %}
+                                <span class="badge bg-warning">Chờ ký</span>
+                            {% elif contract.status == 'active' %}
+                                <span class="badge bg-success">Đang hiệu lực</span>
+                            {% elif contract.status == 'expired' %}
+                                <span class="badge bg-secondary">Hết hạn</span>
+                            {% else %}
+                                <span class="badge bg-danger">Đã chấm dứt</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Thông tin cơ bản -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6 class="card-subtitle mb-3">Thông tin hợp đồng</h6>
+                            <ul class="list-unstyled">
+                                <li class="mb-2">
+                                    <i class="fas fa-hashtag text-primary"></i> <strong>Mã hợp đồng:</strong><br>
+                                    <span class="ps-4">{{ contract.code }}</span>
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-calendar text-primary"></i> <strong>Kỳ đăng ký:</strong><br>
+                                    <span class="ps-4">{{ contract.period.name }}</span>
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-clock text-primary"></i> <strong>Ngày tạo:</strong><br>
+                                    <span class="ps-4">{{ contract.created_at|date:"d/m/Y H:i" }}</span>
+                                </li>
+                                {% if contract.signed_at %}
+                                    <li class="mb-2">
+                                        <i class="fas fa-signature text-primary"></i> <strong>Ngày ký:</strong><br>
+                                        <span class="ps-4">{{ contract.signed_at|date:"d/m/Y H:i" }}</span>
+                                    </li>
+                                {% endif %}
+                                {% if contract.terminated_at %}
+                                    <li class="mb-2">
+                                        <i class="fas fa-times text-danger"></i> <strong>Ngày chấm dứt:</strong><br>
+                                        <span class="ps-4">{{ contract.terminated_at|date:"d/m/Y H:i" }}</span>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="card-subtitle mb-3">Thông tin phòng</h6>
+                            <ul class="list-unstyled">
+                                <li class="mb-2">
+                                    <i class="fas fa-building text-primary"></i> <strong>Tòa nhà:</strong><br>
+                                    <span class="ps-4">{{ contract.room.building.name }}</span>
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-door-open text-primary"></i> <strong>Phòng:</strong><br>
+                                    <span class="ps-4">{{ contract.room.room_number }}</span>
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-bed text-primary"></i> <strong>Giường:</strong><br>
+                                    <span class="ps-4">Giường {{ contract.bed.bed_number }}</span>
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-money-bill-wave text-primary"></i> <strong>Giá/tháng:</strong><br>
+                                    <span class="ps-4">{{ contract.room.room_type.price_per_month|intcomma }} VNĐ</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Thời hạn hợp đồng -->
+                    <div class="mb-4">
+                        <h6 class="card-subtitle mb-3">Thời hạn hợp đồng</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="alert alert-info mb-3">
+                                    <p class="mb-1"><strong>Ngày bắt đầu:</strong></p>
+                                    <h5 class="mb-0">{{ contract.start_date|date:"d/m/Y" }}</h5>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="alert alert-info mb-3">
+                                    <p class="mb-1"><strong>Ngày kết thúc:</strong></p>
+                                    <h5 class="mb-0">{{ contract.end_date|date:"d/m/Y" }}</h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Điều khoản hợp đồng -->
+                    <div class="mb-4">
+                        <h6 class="card-subtitle mb-3">Điều khoản hợp đồng</h6>
+                        <div class="alert alert-light">
+                            {{ contract.terms|linebreaks }}
+                        </div>
+                    </div>
+
+                    <!-- Ghi chú -->
+                    {% if contract.note %}
+                        <div class="mb-4">
+                            <h6 class="card-subtitle mb-3">Ghi chú</h6>
+                            <div class="alert alert-light">
+                                {{ contract.note|linebreaks }}
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    <!-- Nút thao tác -->
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'registration:contract_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Quay lại
+                        </a>
+                        {% if contract.status == 'pending' %}
+                            <a href="{% url 'registration:sign_contract' contract.id %}" class="btn btn-success">
+                                <i class="fas fa-signature"></i> Ký hợp đồng
+                            </a>
+                        {% endif %}
+                        {% if contract.status == 'active' %}
+                            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#terminateModal">
+                                <i class="fas fa-times"></i> Chấm dứt hợp đồng
+                            </button>
+                        {% endif %}
+                        {% if contract.status == 'active' or contract.status == 'expired' %}
+                            <a href="{% url 'registration:download_contract' contract.id %}" class="btn btn-primary" target="_blank">
+                                <i class="fas fa-download"></i> Tải hợp đồng
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Thông tin sinh viên -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Thông tin sinh viên</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <i class="fas fa-user text-primary"></i> <strong>Họ tên:</strong><br>
+                            <span class="ps-4">{{ contract.student.full_name }}</span>
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-id-card text-primary"></i> <strong>MSSV:</strong><br>
+                            <span class="ps-4">{{ contract.student.student_id }}</span>
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-envelope text-primary"></i> <strong>Email:</strong><br>
+                            <span class="ps-4">{{ contract.student.email }}</span>
+                        </li>
+                        <li>
+                            <i class="fas fa-phone text-primary"></i> <strong>Số điện thoại:</strong><br>
+                            <span class="ps-4">{{ contract.student.phone_number }}</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Timeline -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Lịch sử hợp đồng</h5>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        <!-- Tạo hợp đồng -->
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-primary"></div>
+                            <div class="timeline-content">
+                                <h6 class="mb-1">Tạo hợp đồng</h6>
+                                <small class="text-muted">{{ contract.created_at|date:"d/m/Y H:i" }}</small>
+                            </div>
+                        </div>
+
+                        <!-- Ký hợp đồng -->
+                        {% if contract.signed_at %}
+                            <div class="timeline-item">
+                                <div class="timeline-marker bg-success"></div>
+                                <div class="timeline-content">
+                                    <h6 class="mb-1">Ký hợp đồng</h6>
+                                    <small class="text-muted">{{ contract.signed_at|date:"d/m/Y H:i" }}</small>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        <!-- Chấm dứt hợp đồng -->
+                        {% if contract.terminated_at %}
+                            <div class="timeline-item">
+                                <div class="timeline-marker bg-danger"></div>
+                                <div class="timeline-content">
+                                    <h6 class="mb-1">Chấm dứt hợp đồng</h6>
+                                    <small class="text-muted">{{ contract.terminated_at|date:"d/m/Y H:i" }}</small>
+                                    {% if contract.termination_reason %}
+                                        <p class="mb-0 mt-2">{{ contract.termination_reason }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        <!-- Hết hạn hợp đồng -->
+                        {% if contract.status == 'expired' %}
+                            <div class="timeline-item">
+                                <div class="timeline-marker bg-secondary"></div>
+                                <div class="timeline-content">
+                                    <h6 class="mb-1">Hết hạn hợp đồng</h6>
+                                    <small class="text-muted">{{ contract.end_date|date:"d/m/Y" }}</small>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal chấm dứt hợp đồng -->
+{% if contract.status == 'active' %}
+    <div class="modal fade" id="terminateModal" tabindex="-1" aria-labelledby="terminateModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="terminateModalLabel">Xác nhận chấm dứt hợp đồng</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Bạn có chắc chắn muốn chấm dứt hợp đồng này?</p>
+                    <p class="mb-0"><strong>Mã hợp đồng:</strong> {{ contract.code }}</p>
+                    <p class="mb-0"><strong>Phòng:</strong> {{ contract.room.building.name }} - Phòng {{ contract.room.room_number }}</p>
+                    <p class="mb-0"><strong>Giường:</strong> Giường {{ contract.bed.bed_number }}</p>
+                    <div class="alert alert-warning mt-3">
+                        <i class="fas fa-exclamation-triangle"></i> Lưu ý: Hành động này không thể hoàn tác.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <form action="{% url 'registration:terminate_contract' contract.id %}" method="post" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-times"></i> Chấm dứt hợp đồng
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Timeline styles */
+.timeline {
+    position: relative;
+    padding-left: 3rem;
+    margin-bottom: 0;
+}
+
+.timeline:before {
+    content: '';
+    position: absolute;
+    left: 1rem;
+    top: 0;
+    height: 100%;
+    width: 2px;
+    background-color: #e9ecef;
+}
+
+.timeline-item {
+    position: relative;
+    padding-bottom: 1.5rem;
+}
+
+.timeline-item:last-child {
+    padding-bottom: 0;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -2.45rem;
+    width: 1rem;
+    height: 1rem;
+    border-radius: 50%;
+}
+
+.timeline-content {
+    padding-left: 0.5rem;
+}
+</style>
+{% endblock %} 

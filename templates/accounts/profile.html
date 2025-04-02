@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Hồ sơ của tôi - Quản lý Ký túc xá{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 mb-0">{{ page_title }}</h1>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="row">
+                <!-- Thông tin cơ bản -->
+                <div class="col-lg-4 mb-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body text-center">
+                            <div class="mb-4">
+                                {% if user.avatar %}
+                                <img src="{{ user.avatar.url }}" alt="{{ user.full_name }}" class="rounded-circle img-thumbnail" style="width: 120px; height: 120px; object-fit: cover;">
+                                {% else %}
+                                <img src="{% static 'images/default-avatar.png' %}" alt="{{ user.full_name }}" class="rounded-circle img-thumbnail" style="width: 120px; height: 120px; object-fit: cover;">
+                                {% endif %}
+                            </div>
+
+                            <h5 class="mb-1">{{ user.full_name }}</h5>
+                            <p class="text-muted mb-3">
+                                {% if user.user_type == 'admin' %}
+                                <span class="badge bg-purple">Quản trị viên</span>
+                                {% elif user.user_type == 'staff' %}
+                                <span class="badge bg-primary">Nhân viên</span>
+                                {% else %}
+                                <span class="badge bg-success">Sinh viên</span>
+                                {% endif %}
+                            </p>
+
+                            <div class="d-grid gap-2">
+                                <a href="{% url 'accounts:profile_edit' %}" class="btn btn-primary">
+                                    <i class="bi bi-pencil-square me-1"></i>
+                                    Chỉnh sửa hồ sơ
+                                </a>
+                                <a href="{% url 'accounts:change_password' %}" class="btn btn-outline-primary">
+                                    <i class="bi bi-key me-1"></i>
+                                    Đổi mật khẩu
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Thông tin chi tiết -->
+                <div class="col-lg-8">
+                    <div class="card shadow-sm">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Thông tin chi tiết</h5>
+                        </div>
+
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label text-muted">Email</label>
+                                    <div class="d-flex align-items-center">
+                                        <span>{{ user.email }}</span>
+                                        {% if user.email_verified %}
+                                        <span class="badge bg-success ms-2">
+                                            <i class="bi bi-check-circle me-1"></i>
+                                            Đã xác thực
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-warning ms-2">
+                                            <i class="bi bi-exclamation-circle me-1"></i>
+                                            Chưa xác thực
+                                        </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label text-muted">Số điện thoại</label>
+                                    <div>{{ user.phone_number|default:"Chưa cập nhật" }}</div>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label text-muted">Giới tính</label>
+                                    <div>{{ user.get_gender_display|default:"Chưa cập nhật" }}</div>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label text-muted">Ngày sinh</label>
+                                    <div>{{ user.date_of_birth|default:"Chưa cập nhật" }}</div>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label text-muted">CCCD/CMND</label>
+                                    <div>{{ user.id_card_number|default:"Chưa cập nhật" }}</div>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label text-muted">Địa chỉ</label>
+                                    <div>{{ user.address|default:"Chưa cập nhật" }}</div>
+                                </div>
+
+                                {% if user.user_type == 'student' %}
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label text-muted">Mã số sinh viên</label>
+                                    <div>{{ user.student_id|default:"Chưa cập nhật" }}</div>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label text-muted">Trường</label>
+                                    <div>{{ user.university|default:"Chưa cập nhật" }}</div>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label text-muted">Khoa</label>
+                                    <div>{{ user.faculty|default:"Chưa cập nhật" }}</div>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label text-muted">Ngành</label>
+                                    <div>{{ user.major|default:"Chưa cập nhật" }}</div>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label text-muted">Niên khóa</label>
+                                    <div>{{ user.academic_year|default:"Chưa cập nhật" }}</div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

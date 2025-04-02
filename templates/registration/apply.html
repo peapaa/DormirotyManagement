@@ -1,0 +1,262 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    
+
+    <!-- Thông báo -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Form đăng ký -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Thông tin đăng ký</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+
+                        <!-- Thông tin kỳ đăng ký -->
+                        <div class="mb-4">
+                            <h6 class="card-subtitle mb-3">Kỳ đăng ký</h6>
+                            <p class="mb-1"><strong>Tên kỳ:</strong> {{ current_period.name }}</p>
+                            <p class="mb-1"><strong>Thời gian đăng ký:</strong> {{ current_period.registration_start|date:"d/m/Y H:i" }} - {{ current_period.registration_end|date:"d/m/Y H:i" }}</p>
+                            <p class="mb-0"><strong>Thời gian ở:</strong> {{ current_period.start_date|date:"d/m/Y" }} - {{ current_period.end_date|date:"d/m/Y" }}</p>
+                        </div>
+
+                        {% if room %}
+                            <!-- Thông tin phòng đã chọn -->
+                            <div class="mb-4">
+                                <h6 class="card-subtitle mb-3">Phòng đã chọn</h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p class="mb-1"><strong>Tòa nhà:</strong> {{ room.building.name }}</p>
+                                        <p class="mb-1"><strong>Phòng:</strong> {{ room.room_number }}</p>
+                                        <p class="mb-1"><strong>Loại phòng:</strong> {{ room.room_type.name }}</p>
+                                        <p class="mb-0"><strong>Giá/tháng:</strong> {{ room.room_type.price_per_month|intcomma }} VNĐ</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        {% if available_beds %}
+                                            <div class="form-group">
+                                                <label for="bed" class="form-label">Chọn giường <span class="text-danger">*</span></label>
+                                                <select name="bed" id="bed" class="form-select" required>
+                                                    <option value="">-- Chọn giường --</option>
+                                                    {% for bed in available_beds %}
+                                                        <option value="{{ bed.id }}" {% if request.GET.bed == bed.id|stringformat:"s" %}selected{% endif %}>
+                                                            Giường {{ bed.bed_number }}
+                                                        </option>
+                                                    {% endfor %}
+                                                </select>
+                                                <div class="invalid-feedback">Vui lòng chọn giường.</div>
+                                            </div>
+                                        {% else %}
+                                            <div class="alert alert-warning">
+                                                <i class="fas fa-exclamation-triangle"></i> Không có giường trống.
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% else %}
+                            <!-- Form chọn phòng -->
+                            <div class="mb-4">
+                                <h6 class="card-subtitle mb-3">Chọn phòng</h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="building" class="form-label">Tòa nhà <span class="text-danger">*</span></label>
+                                            <select name="building" id="building" class="form-select" required>
+                                                <option value="">-- Chọn tòa nhà --</option>
+                                                {% for building in buildings %}
+                                                    <option value="{{ building.id }}">{{ building.name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                            <div class="invalid-feedback">Vui lòng chọn tòa nhà.</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-3">
+                                            <label for="room_type" class="form-label">Loại phòng <span class="text-danger">*</span></label>
+                                            <select name="room_type" id="room_type" class="form-select" required>
+                                                <option value="">-- Chọn loại phòng --</option>
+                                                {% for room_type in room_types %}
+                                                    <option value="{{ room_type.id }}">{{ room_type.name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                            <div class="invalid-feedback">Vui lòng chọn loại phòng.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        <!-- Yêu cầu đặc biệt -->
+                        <div class="mb-4">
+                            <h6 class="card-subtitle mb-3">Yêu cầu đặc biệt</h6>
+                            <div class="form-group">
+                                <textarea name="special_requirements" id="special_requirements" class="form-control" rows="3" placeholder="Nhập yêu cầu đặc biệt của bạn (nếu có)..."></textarea>
+                                <div class="form-text">Các yêu cầu đặc biệt sẽ được xem xét nhưng không đảm bảo đáp ứng.</div>
+                            </div>
+                        </div>
+
+                        <!-- Xác nhận -->
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="confirm" required>
+                                <label class="form-check-label" for="confirm">
+                                    Tôi đã đọc và đồng ý với <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">điều khoản và điều kiện</a> của ký túc xá
+                                </label>
+                                <div class="invalid-feedback">Bạn phải đồng ý với điều khoản và điều kiện.</div>
+                            </div>
+                        </div>
+
+                        <!-- Nút submit -->
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-check-circle"></i> Gửi đơn đăng ký
+                            </button>
+                            <a href="{% url 'registration:room_list' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left"></i> Quay lại
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <!-- Thông tin sinh viên -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Thông tin sinh viên</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <i class="fas fa-user text-primary"></i> <strong>Họ tên:</strong><br>
+                            <span class="ps-4">{{ request.user.full_name }}</span>
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-id-card text-primary"></i> <strong>MSSV:</strong><br>
+                            <span class="ps-4">{{ request.user.student_id }}</span>
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-envelope text-primary"></i> <strong>Email:</strong><br>
+                            <span class="ps-4">{{ request.user.email }}</span>
+                        </li>
+                        <li>
+                            <i class="fas fa-phone text-primary"></i> <strong>Số điện thoại:</strong><br>
+                            <span class="ps-4">{{ request.user.phone_number }}</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Hướng dẫn -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Hướng dẫn</h5>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info mb-3">
+                        <i class="fas fa-info-circle"></i> Vui lòng kiểm tra kỹ thông tin trước khi gửi đơn đăng ký.
+                    </div>
+                    <ol class="mb-0">
+                        <li class="mb-2">Chọn phòng và giường phù hợp</li>
+                        <li class="mb-2">Điền yêu cầu đặc biệt (nếu có)</li>
+                        <li class="mb-2">Đọc và đồng ý với điều khoản</li>
+                        <li class="mb-2">Gửi đơn đăng ký</li>
+                        <li>Chờ kết quả xét duyệt</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal điều khoản -->
+<div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="termsModalLabel">Điều khoản và điều kiện</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h6>1. Quy định chung</h6>
+                <p>- Sinh viên phải tuân thủ nội quy ký túc xá và các quy định của nhà trường.</p>
+                <p>- Giữ gìn trật tự, vệ sinh chung và bảo quản tài sản công.</p>
+                <p>- Không được tự ý sửa chữa, cải tạo phòng ở.</p>
+
+                <h6>2. Quy định về thanh toán</h6>
+                <p>- Sinh viên phải đóng phí ký túc xá đúng thời hạn quy định.</p>
+                <p>- Phí điện, nước sẽ được tính theo chỉ số thực tế và thanh toán hàng tháng.</p>
+                <p>- Tiền đặt cọc sẽ được hoàn trả khi kết thúc hợp đồng (sau khi trừ các khoản phí phát sinh nếu có).</p>
+
+                <h6>3. Quy định về an ninh</h6>
+                <p>- Không được tự ý cho người ngoài vào phòng ở qua đêm.</p>
+                <p>- Tuân thủ giờ giấc ra vào ký túc xá theo quy định.</p>
+                <p>- Không được tàng trữ chất cháy nổ, chất độc hại, vũ khí, chất gây nghiện...</p>
+
+                <h6>4. Quy định về sinh hoạt</h6>
+                <p>- Không gây ồn ào, mất trật tự sau 22h00.</p>
+                <p>- Tiết kiệm điện, nước và giữ gìn vệ sinh chung.</p>
+                <p>- Phân loại rác thải trước khi vứt vào thùng rác.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    'use strict'
+    var forms = document.querySelectorAll('.needs-validation')
+    Array.prototype.slice.call(forms).forEach(function (form) {
+        form.addEventListener('submit', function (event) {
+            if (!form.checkValidity()) {
+                event.preventDefault()
+                event.stopPropagation()
+            }
+            form.classList.add('was-validated')
+        }, false)
+    })
+})()
+
+{% if not room %}
+    document.getElementById('building').addEventListener('change', function() {
+        const buildingId = this.value;
+        const roomTypeId = document.getElementById('room_type').value;
+        if (buildingId && roomTypeId) {
+            window.location.href = `{% url 'registration:room_list' %}?building=${buildingId}&room_type=${roomTypeId}`;
+        }
+    });
+
+    document.getElementById('room_type').addEventListener('change', function() {
+        const roomTypeId = this.value;
+        const buildingId = document.getElementById('building').value;
+        if (buildingId && roomTypeId) {
+            window.location.href = `{% url 'registration:room_list' %}?building=${buildingId}&room_type=${roomTypeId}`;
+        }
+    });
+{% endif %}
+</script>
+{% endblock %} 
